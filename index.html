@@ -240,6 +240,20 @@
                 <button type="submit" class="btn-primary" style="width:100%;">Add Money</button>
             </form>
             <hr style="margin: 20px 0; border-color: var(--border-color);">
+            <h3>Withdraw Money</h3>
+            <form id="withdraw-money-form">
+                <div class="form-group">
+                    <label for="withdraw-amount">Amount to Withdraw (₹)</label>
+                    <input type="number" id="withdraw-amount" min="50" required placeholder="e.g., 100">
+                </div>
+                <div class="form-group">
+                    <label for="upi-id">UPI ID</label>
+                    <input type="text" id="upi-id" required placeholder="yourname@upi">
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">Request Withdrawal</button>
+                <div class="alert" id="withdraw-message" style="display: none;"></div>
+            </form>
+            <hr style="margin: 20px 0; border-color: var(--border-color);">
             <h3>Transaction History</h3>
             <ul id="wallet-history">
                 <li>No transactions yet.</li>
@@ -606,6 +620,67 @@
                     alert('Your request has been submitted and is pending verification.');
                     closeModal(walletModal);
                 });
+            }
+        });
+
+        document.getElementById('withdraw-money-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const withdrawAmount = parseFloat(document.getElementById('withdraw-amount').value);
+            const upiId = document.getElementById('upi-id').value.trim();
+            const messageDiv = document.getElementById('withdraw-message');
+
+            const displayMessage = (message, isSuccess) => {
+                messageDiv.textContent = message;
+                messageDiv.className = isSuccess ? 'alert alert-success' : 'alert alert-danger';
+                messageDiv.style.display = 'block';
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                    messageDiv.textContent = '';
+                }, 4000);
+            };
+
+            if (!currentUser) {
+                displayMessage('You must be logged in to make a withdrawal.', false);
+                return;
+            }
+
+            if (isNaN(withdrawAmount) || withdrawAmount < 50) {
+                displayMessage('Minimum withdrawal amount is ₹50.', false);
+                return;
+            }
+
+            if (!upiId || !upiId.includes('@')) {
+                displayMessage('Please enter a valid UPI ID.', false);
+                return;
+            }
+
+            const userRef = ref(db, `users/${currentUser.uid}`);
+            try {
+                const userSnapshot = await get(userRef);
+                const userData = userSnapshot.val();
+                const currentBalance = userData.walletBalance || 0;
+
+                if (withdrawAmount > currentBalance) {
+                    displayMessage('Insufficient wallet balance.', false);
+                    return;
+                }
+
+                const withdrawalRef = push(ref(db, 'withdrawalRequests'));
+                await set(withdrawalRef, {
+                    uid: currentUser.uid,
+                    displayName: userData.displayName,
+                    amount: withdrawAmount,
+                    upiId: upiId,
+                    status: 'pending',
+                    timestamp: new Date().toISOString()
+                });
+
+                displayMessage('Withdrawal request submitted. It will be processed shortly.', true);
+                document.getElementById('withdraw-money-form').reset();
+
+            } catch (error) {
+                console.error("Withdrawal Error: ", error);
+                displayMessage('An error occurred. Please try again.', false);
             }
         });
 
