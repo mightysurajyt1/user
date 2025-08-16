@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Battle Arena</title>
+    <style>
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --background-color: #f4f7f6;
+            --surface-color: #ffffff;
+            --text-color: #333;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--background-color); color: var(--text-color); line-height: 1.6; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
+        #admin-login, #admin-dashboard { display: none; }
+        .login-container { max-width: 400px; margin: 100px auto; padding: 30px; background-color: var(--surface-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow); }
+        .login-container h2 { text-align: center; margin-bottom: 20px; color: var(--primary-color); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn { display: inline-block; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 16px; font-weight: bold; text-align: center; transition: all 0.3s ease; }
+        .btn-primary { background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color)); color: white; width: 100%; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-danger { background-color: var(--danger-color); color: white; }
+        .btn-success { background-color: var(--success-color); color: white; }
+        .btn-warning { background-color: var(--warning-color); color: white; }
+        .btn-sm { padding: 8px 12px; font-size: 14px; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: var(--surface-color); box-shadow: var(--box-shadow); margin-bottom: 20px; }
+        .header h1 { color: var(--primary-color); }
+        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .tab-button { padding: 10px 15px; background-color: #e9ecef; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .tab-button.active { background-color: var(--primary-color); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background-color: var(--surface-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 20px; margin-bottom: 20px; }
+        .card h3 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .actions { display: flex; gap: 10px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: var(--border-radius); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; }
+        .close-button { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; display: none; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        #loader { display: none; text-align: center; padding: 50px; }
+        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid var(--primary-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="admin-login">
+        <div class="login-container">
+            <h2>Admin Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="admin-email">Email</label>
+                    <input type="email" id="admin-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <div class="alert alert-danger" id="login-error" style="margin-top: 15px;"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-dashboard">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <button id="logout-btn" class="btn btn-danger">Logout</button>
+        </div>
+        <div class="container">
+            <div id="alert-container"></div>
+            <div class="tabs">
+                <button class="tab-button active" onclick="openTab('tournaments')">Tournaments</button>
+                <button class="tab-button" onclick="openTab('registrations')">Registrations</button>
+                <button class="tab-button" onclick="openTab('results')">Results</button>
+                <button class="tab-button" onclick="openTab('sliders')">Announcements</button>
+                <button class="tab-button" onclick="openTab('wallet')">Wallet Verification</button>
+            </div>
+
+            <div id="loader"><div class="spinner"></div></div>
+
+            <!-- Tournaments Tab -->
+            <div id="tournaments" class="tab-content active">
+                <div class="card">
+                    <h3 id="tournament-form-title">Create New Tournament</h3>
+                    <form id="tournament-form">
+                        <input type="hidden" id="tournament-id">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="game">Game</label>
+                                <select id="game" required>
+                                    <option value="BGMI">BGMI</option>
+                                    <option value="Free Fire">Free Fire</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="title">Title</label>
+                                <input type="text" id="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="mode">Mode</label>
+                                <select id="mode" required>
+                                    <option value="Solo">Solo</option>
+                                    <option value="Duo">Duo</option>
+                                    <option value="Squad">Squad</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="perspective">Perspective</label>
+                                <select id="perspective" required>
+                                    <option value="TPP">TPP</option>
+                                    <option value="FPP">FPP</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="map">Map</label>
+                                <input type="text" id="map" placeholder="e.g., Erangel, Bermuda" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="date-time">Date & Time</label>
+                                <input type="datetime-local" id="date-time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="entry-fee">Entry Fee (₹)</label>
+                                <input type="number" id="entry-fee" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="prize-pool">Prize Pool (₹)</label>
+                                <input type="number" id="prize-pool" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="max-players">Max Teams/Players</label>
+                                <input type="number" id="max-players" min="1" required>
+                            </div>
+                             <div class="form-group">
+                                <label for="room-reveal-time">Room Reveal Time</label>
+                                <input type="datetime-local" id="room-reveal-time" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">Status</label>
+                                <select id="status" required>
+                                    <option value="draft">Draft</option>
+                                    <option value="upcoming">Upcoming</option>
+                                    <option value="ongoing">Ongoing</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                             <div class="form-group">
+                                <label for="thumbnail-url">Thumbnail URL</label>
+                                <input type="url" id="thumbnail-url" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="rules">Rules</label>
+                            <textarea id="rules" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="payment-link">External Payment Link (optional)</label>
+                            <input type="url" id="payment-link">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Tournament</button>
+                        <button type="button" id="cancel-edit-btn" class="btn btn-warning" style="display:none;">Cancel Edit</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Existing Tournaments</h3>
+                    <div style="overflow-x:auto;">
+                        <table id="tournaments-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Game</th>
+                                    <th>Date & Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registrations Tab -->
+            <div id="registrations" class="tab-content">
+                 <div class="card">
+                    <h3>View Registrations</h3>
+                    <div class="form-group">
+                        <label for="reg-tournament-select">Select a Tournament</label>
+                        <select id="reg-tournament-select"></select>
+                    </div>
+                    <div id="reg-counts">Total: 0 | Approved: 0 | Pending: 0</div>
+                     <div style="overflow-x:auto;">
+                        <table id="registrations-table">
+                            <thead>
+                                <tr>
+                                    <th>Player/Team</th>
+                                    <th>Leader Name</th>
+                                    <th>Contact</th>
+                                    <th>Player IDs</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6">Select a tournament to view registrations.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                 <div class="card">
+                    <h3>Room Credentials</h3>
+                     <form id="room-credentials-form">
+                        <input type="hidden" id="room-tournament-id">
+                        <p>Credentials for: <b id="room-tournament-title">Select a tournament</b></p>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="room-id">Room ID</label>
+                                <input type="text" id="room-id">
+                            </div>
+                            <div class="form-group">
+                                <label for="room-pass">Room Password</label>
+                                <input type="text" id="room-pass">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Credentials</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Tab -->
+            <div id="results" class="tab-content">
+                <div class="card">
+                    <h3>Manage Results</h3>
+                     <div class="form-group">
+                        <label for="result-tournament-select">Select Tournament</label>
+                        <select id="result-tournament-select"></select>
+                    </div>
+                </div>
+                <div class="card" id="result-management-section" style="display:none;">
+                    <h3 id="result-form-title">Add Result Entry</h3>
+                    <form id="result-form">
+                        <input type="hidden" id="result-team-name-hidden">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="result-team-name">Team/Player Name</label>
+                                <input type="text" id="result-team-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="placement-points">Placement Points</label>
+                                <input type="number" id="placement-points" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="kill-points">Kill Points</label>
+                                <input type="number" id="kill-points" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="proof-url">Proof URL (optional)</label>
+                                <input type="url" id="proof-url">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Result</button>
+                    </form>
+                    <hr style="margin: 20px 0;">
+                    <h3>Leaderboard</h3>
+                    <div style="overflow-x:auto;">
+                        <table id="leaderboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Team/Player</th>
+                                    <th>Placement Pts</th>
+                                    <th>Kill Pts</th>
+                                    <th>Total Pts</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sliders Tab -->
+            <div id="sliders" class="tab-content">
+                 <div class="card">
+                    <h3>Manage Announcement Banners</h3>
+                    <form id="slider-form">
+                        <input type="hidden" id="slider-id">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="slider-image-url">Image URL</label>
+                                <input type="url" id="slider-image-url" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="slider-redirect-url">Redirect URL</label>
+                                <input type="url" id="slider-redirect-url" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Banner</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Existing Banners</h3>
+                    <div style="overflow-x:auto;">
+                        <table id="sliders-table">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Redirect URL</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+             <!-- Wallet Verification Tab -->
+            <div id="wallet" class="tab-content">
+                <div class="card">
+                    <h3>Pending Wallet Transactions</h3>
+                    <p>Approve transactions here to add funds to user wallets.</p>
+                     <div style="overflow-x:auto;">
+                        <table id="wallet-transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>User Email</th>
+                                    <th>Amount (₹)</th>
+                                    <th>Transaction Ref</th>
+                                    <th>Screenshot</th>
+                                    <th>Timestamp</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Confirm Action</h3>
+                <span class="close-button" id="modal-close-btn">&times;</span>
+            </div>
+            <p id="modal-text">Are you sure?</p>
+            <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
+                <button id="modal-cancel-btn" class="btn btn-warning">Cancel</button>
+                <button id="modal-confirm-btn" class="btn btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase Config
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import {
+            getDatabase,
+            ref,
+            set,
+            push,
+            onValue,
+            remove,
+            update,
+            get,
+            runTransaction
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD8TSxu8tSupRs136PPCCP7C7lxbI5t8ro",
+            authDomain: "kill-karo-pro.firebaseapp.com",
+            databaseURL: "https://kill-karo-pro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "kill-karo-pro",
+            storageBucket: "kill-karo-pro.storage.app",
+            messagingSenderId: "583311964637",
+            appId: "1:583311964637:web:67398aec579de31f929e34",
+            measurementId: "G-LJ82ZYN507"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // --- GLOBAL STATE & UTILS ---
+        const loader = document.getElementById('loader');
+
+        function showLoader() { loader.style.display = 'block'; }
+        function hideLoader() { loader.style.display = 'none'; }
+
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alert-container');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            container.appendChild(alertDiv);
+            alertDiv.style.display = 'block';
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+                container.removeChild(alertDiv);
+            }, 4000);
+        }
+
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        window.openTab = openTab;
+
+        // --- AUTHENTICATION ---
+        const loginSection = document.getElementById('admin-login');
+        const dashboardSection = document.getElementById('admin-dashboard');
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                loginSection.style.display = 'none';
+                dashboardSection.style.display = 'block';
+                fetchAllData();
+            } else {
+                loginSection.style.display = 'block';
+                dashboardSection.style.display = 'none';
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            const loginError = document.getElementById('login-error');
+
+            signInWithEmailAndPassword(auth, email, password)
+                .catch(error => {
+                    loginError.textContent = error.message;
+                    loginError.style.display = 'block';
+                });
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth);
+        });
+        
+        function fetchAllData() {
+            loadTournaments();
+            loadSliders();
+            loadWalletTransactions();
+        }
+
+        // --- TOURNAMENT MANAGEMENT ---
+        const tournamentForm = document.getElementById('tournament-form');
+        const tournamentTableBody = document.querySelector('#tournaments-table tbody');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+        tournamentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const tournamentId = document.getElementById('tournament-id').value;
+            const tournamentData = {
+                game: document.getElementById('game').value,
+                title: document.getElementById('title').value,
+                mode: document.getElementById('mode').value,
+                perspective: document.getElementById('perspective').value,
+                map: document.getElementById('map').value,
+                dateTime: new Date(document.getElementById('date-time').value).toISOString(),
+                entryFee: parseInt(document.getElementById('entry-fee').value),
+                prizePool: parseInt(document.getElementById('prize-pool').value),
+                maxPlayers: parseInt(document.getElementById('max-players').value),
+                rules: document.getElementById('rules').value,
+                roomRevealAt: new Date(document.getElementById('room-reveal-time').value).toISOString(),
+                status: document.getElementById('status').value,
+                thumbnailUrl: document.getElementById('thumbnail-url').value,
+                paymentLink: document.getElementById('payment-link').value,
+                createdAt: new Date().toISOString()
+            };
+
+            if (tournamentId) { // Update
+                update(ref(db, `tournaments/${tournamentId}`), tournamentData)
+                    .then(() => showAlert('Tournament updated successfully!'))
+                    .catch(e => showAlert('Error: ' + e.message, 'danger'));
+            } else { // Create
+                const newTournamentRef = push(ref(db, 'tournaments'));
+                set(newTournamentRef, tournamentData)
+                    .then(() => showAlert('Tournament created successfully!'))
+                    .catch(e => showAlert('Error: ' + e.message, 'danger'));
+            }
+            resetTournamentForm();
+        });
+
+        function resetTournamentForm() {
+            tournamentForm.reset();
+            document.getElementById('tournament-id').value = '';
+            document.getElementById('tournament-form-title').textContent = 'Create New Tournament';
+            cancelEditBtn.style.display = 'none';
+        }
+
+        cancelEditBtn.addEventListener('click', resetTournamentForm);
+
+        function loadTournaments() {
+            showLoader();
+            const tournamentsRef = ref(db, 'tournaments');
+            onValue(tournamentsRef, (snapshot) => {
+                const data = snapshot.val();
+                tournamentTableBody.innerHTML = '';
+                
+                const regSelect = document.getElementById('reg-tournament-select');
+                const resultSelect = document.getElementById('result-tournament-select');
+                regSelect.innerHTML = '<option value="">-- Select Tournament --</option>';
+                resultSelect.innerHTML = '<option value="">-- Select Tournament --</option>';
+
+                if (data) {
+                    Object.entries(data).forEach(([key, value]) => {
+                        const row = `
+                            <tr>
+                                <td>${value.title}</td>
+                                <td>${value.game}</td>
+                                <td>${new Date(value.dateTime).toLocaleString()}</td>
+                                <td>${value.status}</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-warning" onclick="editTournament('${key}')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteTournament('${key}')">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                        tournamentTableBody.innerHTML += row;
+                        
+                        regSelect.innerHTML += `<option value="${key}">${value.title}</option>`;
+                        if (value.status === 'completed' || value.status === 'ongoing') {
+                            resultSelect.innerHTML += `<option value="${key}">${value.title}</option>`;
+                        }
+                    });
+                } else {
+                    tournamentTableBody.innerHTML = '<tr><td colspan="5">No tournaments found.</td></tr>';
+                }
+                window.tournamentsData = data;
+                hideLoader();
+            });
+        }
+
+        window.editTournament = (id) => {
+            const tournament = window.tournamentsData[id];
+            if (!tournament) return;
+            document.getElementById('tournament-id').value = id;
+            document.getElementById('game').value = tournament.game;
+            document.getElementById('title').value = tournament.title;
+            document.getElementById('mode').value = tournament.mode;
+            document.getElementById('perspective').value = tournament.perspective;
+            document.getElementById('map').value = tournament.map;
+            document.getElementById('date-time').value = tournament.dateTime.slice(0, 16);
+            document.getElementById('entry-fee').value = tournament.entryFee;
+            document.getElementById('prize-pool').value = tournament.prizePool;
+            document.getElementById('max-players').value = tournament.maxPlayers;
+            document.getElementById('rules').value = tournament.rules;
+            document.getElementById('room-reveal-time').value = tournament.roomRevealAt.slice(0, 16);
+            document.getElementById('status').value = tournament.status;
+            document.getElementById('thumbnail-url').value = tournament.thumbnailUrl;
+            document.getElementById('payment-link').value = tournament.paymentLink;
+            
+            document.getElementById('tournament-form-title').textContent = 'Edit Tournament';
+            cancelEditBtn.style.display = 'inline-block';
+            window.scrollTo(0, 0);
+        };
+        
+        window.deleteTournament = (id) => {
+             showConfirmationModal(
+                'Delete Tournament',
+                'Are you sure you want to delete this tournament and all its associated data (registrations, results)? This cannot be undone.',
+                () => {
+                    remove(ref(db, `tournaments/${id}`));
+                    remove(ref(db, `registrations/${id}`));
+                    remove(ref(db, `results/${id}`));
+                    showAlert('Tournament deleted successfully.');
+                }
+            );
+        };
+        
+        // --- REGISTRATION & ROOM MANAGEMENT ---
+        const regSelect = document.getElementById('reg-tournament-select');
+        const regTableBody = document.querySelector('#registrations-table tbody');
+        const regCountsEl = document.getElementById('reg-counts');
+
+        regSelect.addEventListener('change', () => {
+            const tournamentId = regSelect.value;
+            if (!tournamentId) {
+                regTableBody.innerHTML = '<tr><td colspan="6">Select a tournament to view registrations.</td></tr>';
+                document.getElementById('room-tournament-id').value = '';
+                document.getElementById('room-tournament-title').textContent = 'Select a tournament';
+                document.getElementById('room-credentials-form').reset();
+                return;
+            }
+            
+            const selectedTournament = window.tournamentsData[tournamentId];
+            document.getElementById('room-tournament-id').value = tournamentId;
+            document.getElementById('room-tournament-title').textContent = selectedTournament.title;
+            document.getElementById('room-id').value = selectedTournament.roomId || '';
+            document.getElementById('room-pass').value = selectedTournament.roomPass || '';
+            
+            loadRegistrations(tournamentId);
+        });
+
+        function loadRegistrations(tournamentId) {
+            const registrationsRef = ref(db, `registrations/${tournamentId}`);
+            onValue(registrationsRef, async (snapshot) => {
+                const registrations = snapshot.val();
+                regTableBody.innerHTML = '';
+                let total = 0, approved = 0, pending = 0;
+
+                if (registrations) {
+                    for (const [uid, reg] of Object.entries(registrations)) {
+                        total++;
+                        if(reg.status === 'approved') approved++;
+                        if(reg.status === 'pending') pending++;
+
+                        const userSnapshot = await get(ref(db, `users/${uid}`));
+                        const userEmail = userSnapshot.val()?.email || 'N/A';
+
+                        const row = `
+                            <tr>
+                                <td>${reg.teamName || reg.playerName}</td>
+                                <td>${reg.leaderName}</td>
+                                <td>${reg.contactNumber}</td>
+                                <td>${reg.playerIDs.join(', ')}</td>
+                                <td>${reg.status}</td>
+                                <td class="actions">
+                                    ${reg.status === 'pending' ? `
+                                        <button class="btn btn-sm btn-success" onclick="updateRegistrationStatus('${tournamentId}', '${uid}', 'approved')">Approve</button>
+                                        <button class="btn btn-sm btn-danger" onclick="updateRegistrationStatus('${tournamentId}', '${uid}', 'rejected')">Reject</button>
+                                    ` : `<span>-</span>` }
+                                </td>
+                            </tr>
+                        `;
+                        regTableBody.innerHTML += row;
+                    }
+                } else {
+                    regTableBody.innerHTML = '<tr><td colspan="6">No registrations found for this tournament.</td></tr>';
+                }
+                regCountsEl.textContent = `Total: ${total} | Approved: ${approved} | Pending: ${pending}`;
+            });
+        }
+        
+        window.updateRegistrationStatus = (tournamentId, uid, newStatus) => {
+            const regRef = ref(db, `registrations/${tournamentId}/${uid}/status`);
+            let confirmationText = `Are you sure you want to ${newStatus} this registration?`;
+            
+            // If rejecting, we must refund the user
+            if (newStatus === 'rejected') {
+                confirmationText += " The entry fee will be refunded to the user's wallet.";
+            }
+
+            showConfirmationModal(
+                'Confirm Action',
+                confirmationText,
+                () => {
+                    if (newStatus === 'rejected') {
+                        const tournamentData = window.tournamentsData[tournamentId];
+                        const userWalletRef = ref(db, `users/${uid}/walletBalance`);
+                        runTransaction(userWalletRef, (currentBalance) => {
+                            return (currentBalance || 0) + tournamentData.entryFee;
+                        }).then(() => {
+                           set(ref(db, `walletTransactions/${uid}/${Date.now()}`), {
+                                type: 'refund',
+                                amount: tournamentData.entryFee,
+                                description: `Refund for rejected registration in ${tournamentData.title}`,
+                                timestamp: new Date().toISOString()
+                            });
+                        });
+                    }
+                    set(regRef, newStatus).then(() => showAlert(`Registration ${newStatus} successfully.`));
+                }
+            );
+        };
+        
+        document.getElementById('room-credentials-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const tournamentId = document.getElementById('room-tournament-id').value;
+            if(!tournamentId) {
+                showAlert('Please select a tournament first.', 'danger');
+                return;
+            }
+            const roomId = document.getElementById('room-id').value;
+            const roomPass = document.getElementById('room-pass').value;
+            update(ref(db, `tournaments/${tournamentId}`), { roomId, roomPass })
+                .then(() => showAlert('Room credentials updated successfully!'));
+        });
+
+
+        // --- RESULTS & LEADERBOARD MANAGEMENT ---
+        const resultSelect = document.getElementById('result-tournament-select');
+        const resultSection = document.getElementById('result-management-section');
+        const leaderboardTableBody = document.querySelector('#leaderboard-table tbody');
+        const resultForm = document.getElementById('result-form');
+
+        resultSelect.addEventListener('change', () => {
+            const tournamentId = resultSelect.value;
+            if (!tournamentId) {
+                resultSection.style.display = 'none';
+                return;
+            }
+            resultSection.style.display = 'block';
+            loadLeaderboard(tournamentId);
+        });
+        
+        resultForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const tournamentId = resultSelect.value;
+            const teamName = document.getElementById('result-team-name').value;
+            const teamNameKey = teamName.replace(/[^a-zA-Z0-9]/g, '_'); // Sanitize for Firebase key
+            const resultData = {
+                teamName: teamName,
+                placementPoints: parseInt(document.getElementById('placement-points').value),
+                killPoints: parseInt(document.getElementById('kill-points').value),
+            };
+            
+            set(ref(db, `results/${tournamentId}/${teamNameKey}`), resultData)
+                .then(() => {
+                    showAlert('Result saved successfully!');
+                    resultForm.reset();
+                })
+                .catch(e => showAlert(e.message, 'danger'));
+        });
+
+        function loadLeaderboard(tournamentId) {
+            const resultsRef = ref(db, `results/${tournamentId}`);
+            onValue(resultsRef, (snapshot) => {
+                const results = snapshot.val();
+                leaderboardTableBody.innerHTML = '';
+                if(results){
+                    const leaderboard = Object.values(results).map(r => ({
+                        ...r,
+                        totalPoints: r.placementPoints + r.killPoints
+                    })).sort((a, b) => {
+                        if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+                        if (b.placementPoints !== a.placementPoints) return b.placementPoints - a.placementPoints;
+                        return b.killPoints - a.killPoints;
+                    });
+                    
+                    leaderboard.forEach((entry, index) => {
+                        const teamNameKey = entry.teamName.replace(/[^a-zA-Z0-9]/g, '_');
+                        const row = `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${entry.teamName}</td>
+                                <td>${entry.placementPoints}</td>
+                                <td>${entry.killPoints}</td>
+                                <td><b>${entry.totalPoints}</b></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-danger" onclick="deleteResult('${tournamentId}', '${teamNameKey}')">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                        leaderboardTableBody.innerHTML += row;
+                    });
+                } else {
+                    leaderboardTableBody.innerHTML = '<tr><td colspan="6">No results posted yet.</td></tr>';
+                }
+            });
+        }
+        
+        window.deleteResult = (tournamentId, teamNameKey) => {
+            showConfirmationModal('Delete Result', 'Are you sure you want to delete this result entry?', () => {
+                remove(ref(db, `results/${tournamentId}/${teamNameKey}`)).then(() => showAlert('Result deleted.'));
+            });
+        };
+        
+        // --- SLIDERS MANAGEMENT ---
+        const sliderForm = document.getElementById('slider-form');
+        const slidersTableBody = document.querySelector('#sliders-table tbody');
+
+        sliderForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const sliderId = document.getElementById('slider-id').value;
+            const sliderData = {
+                imageUrl: document.getElementById('slider-image-url').value,
+                redirectUrl: document.getElementById('slider-redirect-url').value,
+            };
+
+            if (sliderId) {
+                update(ref(db, `slider/${sliderId}`), sliderData).then(() => showAlert('Banner updated!'));
+            } else {
+                push(ref(db, 'slider'), sliderData).then(() => showAlert('Banner added!'));
+            }
+            sliderForm.reset();
+            document.getElementById('slider-id').value = '';
+        });
+
+        function loadSliders() {
+            const slidersRef = ref(db, 'slider');
+            onValue(slidersRef, (snapshot) => {
+                const data = snapshot.val();
+                slidersTableBody.innerHTML = '';
+                if (data) {
+                    Object.entries(data).forEach(([key, value]) => {
+                        const row = `
+                            <tr>
+                                <td><img src="${value.imageUrl}" alt="Banner" width="100"></td>
+                                <td>${value.redirectUrl}</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-danger" onclick="deleteSlider('${key}')">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                        slidersTableBody.innerHTML += row;
+                    });
+                } else {
+                    slidersTableBody.innerHTML = '<tr><td colspan="3">No banners found.</td></tr>';
+                }
+            });
+        }
+
+        window.deleteSlider = (id) => {
+             showConfirmationModal('Delete Banner', 'Are you sure you want to delete this banner?', () => {
+                remove(ref(db, `slider/${id}`)).then(() => showAlert('Banner deleted.'));
+            });
+        };
+
+        // --- WALLET VERIFICATION ---
+        const walletTableBody = document.querySelector('#wallet-transactions-table tbody');
+
+        function loadWalletTransactions() {
+            const pendingTxnsRef = ref(db, 'pendingWalletTransactions');
+            onValue(pendingTxnsRef, async (snapshot) => {
+                const data = snapshot.val();
+                walletTableBody.innerHTML = '';
+                if(data) {
+                    for(const [txnId, txn] of Object.entries(data)) {
+                        const userSnapshot = await get(ref(db, `users/${txn.uid}`));
+                        const userEmail = userSnapshot.val()?.email || 'N/A';
+                        const row = `
+                            <tr>
+                                <td>${userEmail}</td>
+                                <td>₹${txn.amount}</td>
+                                <td>${txn.transactionId || 'N/A'}</td>
+                                <td>${txn.screenshotUrl ? `<a href="${txn.screenshotUrl}" target="_blank">View</a>` : 'N/A'}</td>
+                                <td>${new Date(txn.timestamp).toLocaleString()}</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-success" onclick="approveTransaction('${txnId}')">Approve</button>
+                                </td>
+                            </tr>
+                        `;
+                        walletTableBody.innerHTML += row;
+                    }
+                } else {
+                    walletTableBody.innerHTML = '<tr><td colspan="6">No pending transactions.</td></tr>';
+                }
+            });
+        }
+
+        window.approveTransaction = (txnId) => {
+            const txnRef = ref(db, `pendingWalletTransactions/${txnId}`);
+            get(txnRef).then((snapshot) => {
+                if(!snapshot.exists()) {
+                    showAlert('Transaction not found or already processed.', 'danger');
+                    return;
+                }
+                const txnData = snapshot.val();
+                const userWalletRef = ref(db, `users/${txnData.uid}/walletBalance`);
+
+                // Use transaction to safely update wallet balance
+                runTransaction(userWalletRef, (currentBalance) => {
+                    return (currentBalance || 0) + txnData.amount;
+                }).then(() => {
+                    // Log the transaction for user history
+                    const historyTxnRef = ref(db, `walletTransactions/${txnData.uid}/${txnId}`);
+                    set(historyTxnRef, {
+                        type: 'credit',
+                        amount: txnData.amount,
+                        description: 'Amount added to wallet',
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // Remove from pending list
+                    remove(txnRef);
+
+                    showAlert('Transaction approved and wallet updated!');
+                }).catch((error) => {
+                    showAlert('Failed to update wallet: ' + error.message, 'danger');
+                });
+            });
+        };
+        
+        // --- MODAL LOGIC ---
+        const modal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+        const modalCancelBtn = document.getElementById('modal-cancel-btn');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+        let confirmCallback = null;
+
+        function showConfirmationModal(title, text, onConfirm) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            confirmCallback = onConfirm;
+            modal.style.display = 'block';
+        }
+
+        function hideModal() {
+            modal.style.display = 'none';
+            confirmCallback = null;
+        }
+
+        modalConfirmBtn.addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+            }
+            hideModal();
+        });
+        modalCancelBtn.addEventListener('click', hideModal);
+        modalCloseBtn.addEventListener('click', hideModal);
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                hideModal();
+            }
+        }
+
+    </script>
+</body>
+</html>
