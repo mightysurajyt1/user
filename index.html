@@ -3,944 +3,740 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Battle Arena</title>
+    <title>Battle Arena</title>
     <style>
         :root {
-            --primary-color: #6a11cb;
-            --secondary-color: #2575fc;
-            --background-color: #f4f7f6;
-            --surface-color: #ffffff;
-            --text-color: #333;
-            --danger-color: #e74c3c;
-            --success-color: #2ecc71;
-            --warning-color: #f39c12;
-            --border-radius: 8px;
-            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --light-bg: #f8f9fa;
+            --light-surface: #ffffff;
+            --light-text: #212529;
+            --light-primary: #007bff;
+            --light-secondary: #6c757d;
+            --light-glow: 0 0 15px rgba(0, 123, 255, 0.5);
+
+            --dark-bg: #121212;
+            --dark-surface: #1e1e1e;
+            --dark-text: #e0e0e0;
+            --dark-primary: #4dabf7;
+            --dark-secondary: #909296;
+            --dark-glow: 0 0 15px rgba(77, 171, 247, 0.6);
+
+            --bg: var(--light-bg);
+            --surface: var(--light-surface);
+            --text: var(--light-text);
+            --primary: var(--light-primary);
+            --secondary: var(--light-secondary);
+            --glow: var(--light-glow);
+            --border-color: #dee2e6;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--background-color); color: var(--text-color); line-height: 1.6; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 20px; }
-        #admin-login, #admin-dashboard { display: none; }
-        .login-container { max-width: 400px; margin: 100px auto; padding: 30px; background-color: var(--surface-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow); }
-        .login-container h2 { text-align: center; margin-bottom: 20px; color: var(--primary-color); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
-        .btn { display: inline-block; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; font-size: 16px; font-weight: bold; text-align: center; transition: all 0.3s ease; }
-        .btn-primary { background-image: linear-gradient(to right, var(--primary-color), var(--secondary-color)); color: white; width: 100%; }
-        .btn-primary:hover { opacity: 0.9; }
-        .btn-danger { background-color: var(--danger-color); color: white; }
-        .btn-success { background-color: var(--success-color); color: white; }
-        .btn-warning { background-color: var(--warning-color); color: white; }
-        .btn-sm { padding: 8px 12px; font-size: 14px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background-color: var(--surface-color); box-shadow: var(--box-shadow); margin-bottom: 20px; }
-        .header h1 { color: var(--primary-color); }
-        .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-        .tab-button { padding: 10px 15px; background-color: #e9ecef; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        .tab-button.active { background-color: var(--primary-color); color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+
+        html.dark {
+            --bg: var(--dark-bg);
+            --surface: var(--dark-surface);
+            --text: var(--dark-text);
+            --primary: var(--dark-primary);
+            --secondary: var(--dark-secondary);
+            --glow: var(--dark-glow);
+            --border-color: #495057;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); transition: background-color 0.3s, color 0.3s; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
+
+        /* --- Header & Nav --- */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: var(--surface); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        .theme-switcher { cursor: pointer; font-size: 1.5rem; }
+        .auth-buttons button, .user-menu button { background: none; border: none; font-size: 1rem; cursor: pointer; color: var(--text); }
+        .btn-primary { padding: 10px 18px; background-color: var(--primary); color: white; border-radius: 5px; text-shadow: 0 1px 2px rgba(0,0,0,0.2); box-shadow: var(--glow); transition: all 0.2s ease-in-out; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0, 123, 255, 0.4); }
+        .user-menu { position: relative; }
+        .dropdown { display: none; position: absolute; right: 0; top: 120%; background-color: var(--surface); min-width: 160px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); z-index: 1; border-radius: 5px; }
+        .dropdown a { color: var(--text); padding: 12px 16px; text-decoration: none; display: block; }
+        .dropdown a:hover { background-color: var(--bg); }
+        .user-menu:hover .dropdown { display: block; }
+
+        /* --- View Sections --- */
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .card { background-color: var(--surface-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow); padding: 20px; margin-bottom: 20px; }
-        .card h3 { border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; margin-bottom: 20px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .actions { display: flex; gap: 10px; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: var(--border-radius); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; }
-        .close-button { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; display: none; }
-        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
-        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
-        #loader { display: none; text-align: center; padding: 50px; }
-        .spinner { border: 8px solid #f3f3f3; border-top: 8px solid var(--primary-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- Slider --- */
+        .slider-container { width: 100%; max-width: 1200px; margin: 20px auto; aspect-ratio: 16/7; overflow: hidden; border-radius: 10px; }
+        .slider { display: flex; height: 100%; transition: transform 0.5s ease-in-out; }
+        .slide { min-width: 100%; height: 100%; }
+        .slide img { width: 100%; height: 100%; object-fit: contain; background-color: #000; }
+        
+        /* --- Tournaments Grid --- */
+        .tournaments-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px 0; }
+        .tournament-card { background-color: var(--surface); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
+        .tournament-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .card-thumbnail { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        .card-body { padding: 15px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .game-badge { font-size: 0.8rem; font-weight: bold; padding: 4px 8px; border-radius: 12px; color: white; }
+        .bgmi { background-color: #d13639; }
+        .freefire { background-color: #ff8c00; }
+        .card-title { font-size: 1.2rem; font-weight: 600; margin: 0; }
+        .card-meta { display: flex; flex-wrap: wrap; gap: 15px; color: var(--secondary); font-size: 0.9rem; margin-bottom: 15px; }
+        .card-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .detail-item { font-size: 0.95rem; }
+        .detail-item strong { color: var(--text); }
+        .card-footer { border-top: 1px solid var(--border-color); padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        @media (max-width: 992px) { .tournaments-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) {
+            .tournaments-grid { grid-template-columns: repeat(3, 1fr); /* Always 3 columns as requested */ }
+            .card-title { font-size: 1rem; }
+            .card-meta, .card-details { font-size: 0.8rem; }
+        }
+
+        /* --- Modal (Auth, Wallet, etc.) --- */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background-color: var(--surface); padding: 25px; border-radius: 8px; width: 90%; max-width: 400px; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 2rem; cursor: pointer; color: var(--secondary); }
+        .modal h2 { text-align: center; margin-bottom: 20px; color: var(--primary); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--bg); color: var(--text); }
+        .form-switch { text-align: center; margin-top: 20px; }
+        .form-switch a { color: var(--primary); cursor: pointer; text-decoration: underline; }
+        .alert { padding: 10px; margin-top: 15px; border-radius: 4px; text-align: center; display: none; }
+        .alert-danger { background-color: #f8d7da; color: #721c24; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+
+        /* Wallet & Profile Styles */
+        .wallet-info { text-align: center; margin-bottom: 20px; }
+        .wallet-balance { font-size: 2.5rem; font-weight: bold; color: var(--primary); }
+        #wallet-history { list-style: none; max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 5px; }
+        #wallet-history li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border-color); }
+        #wallet-history li:last-child { border-bottom: none; }
+        .transaction-credit { color: #2ecc71; }
+        .transaction-debit, .transaction-refund { color: #e74c3c; } /* Refund is money back, so should be a nice color */
+        html.dark .transaction-credit { color: #40c057; }
+        html.dark .transaction-debit, html.dark .transaction-refund { color: #ff6b6b; }
+        
+        /* Room Credentials & Results */
+        .content-card { background-color: var(--surface); padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .credentials-box { border: 2px dashed var(--primary); padding: 20px; text-align: center; margin-top: 20px; }
+        .cred-item { margin: 10px 0; }
+        .cred-item span { font-size: 1.2rem; font-weight: bold; background-color: var(--bg); padding: 5px 10px; border-radius: 5px; }
+        .copy-btn { margin-left: 10px; cursor: pointer; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        th { background-color: var(--bg); }
     </style>
 </head>
 <body>
 
-    <div id="admin-login">
-        <div class="login-container">
-            <h2>Admin Login</h2>
-            <form id="login-form">
+    <header class="header">
+        <div class="logo">BattleArena</div>
+        <nav class="nav-right">
+            <div id="auth-buttons" style="display: none;">
+                <button id="login-btn">Login</button>
+                <button id="signup-btn" class="btn-primary">Sign Up</button>
+            </div>
+            <div id="user-menu" class="user-menu" style="display: none;">
+                <button id="user-greeting">Hi, User!</button>
+                <div class="dropdown">
+                    <a href="#" id="profile-btn">Profile & Wallet</a>
+                    <a href="#" id="logout-btn">Logout</a>
+                </div>
+            </div>
+            <div class="theme-switcher" id="theme-switcher">☀️</div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <!-- Home View (Slider + Tournaments) -->
+        <div id="home-view" class="view active">
+            <div class="slider-container">
+                <div class="slider" id="slider"></div>
+            </div>
+            <h2>Upcoming Tournaments</h2>
+            <div class="tournaments-grid" id="tournaments-grid">
+                <!-- Tournament cards will be injected here by JS -->
+                <p id="no-tournaments-msg" style="display:none;">No upcoming tournaments right now. Check back later!</p>
+            </div>
+        </div>
+
+        <!-- Tournament Details View -->
+        <div id="tournament-detail-view" class="view">
+            <!-- Details will be loaded here -->
+        </div>
+
+        <!-- Results View -->
+        <div id="results-view" class="view">
+             <div class="content-card">
+                <h2>Results & Leaderboards</h2>
                 <div class="form-group">
-                    <label for="admin-email">Email</label>
-                    <input type="email" id="admin-email" required>
+                    <label for="result-tournament-select">Filter by Tournament:</label>
+                    <select id="result-tournament-select"></select>
+                </div>
+                 <div class="form-group">
+                    <label for="search-player">Search by Player/Team:</label>
+                    <input type="text" id="search-player" placeholder="Enter name...">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="leaderboard-table">
+                        <thead><tr><th>Rank</th><th>Player/Team</th><th>Kills</th><th>Placement</th><th>Total</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="auth-close-btn">&times;</span>
+            <!-- Login Form -->
+            <form id="login-form" style="display: none;">
+                <h2>Login</h2>
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
                 </div>
                 <div class="form-group">
-                    <label for="admin-password">Password</label>
-                    <input type="password" id="admin-password" required>
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-                <div class="alert alert-danger" id="login-error" style="margin-top: 15px;"></div>
+                <button type="submit" class="btn-primary" style="width:100%;">Login</button>
+                <div class="alert alert-danger" id="login-error"></div>
+                <p class="form-switch">Don't have an account? <a id="show-signup">Sign Up</a></p>
+            </form>
+            <!-- Signup Form -->
+            <form id="signup-form" style="display: none;">
+                <h2>Sign Up</h2>
+                <div class="form-group"><label for="signup-name">Display Name</label><input type="text" id="signup-name" required></div>
+                <div class="form-group"><label for="signup-email">Email</label><input type="email" id="signup-email" required></div>
+                <div class="form-group"><label for="signup-contact">Contact Number</label><input type="tel" id="signup-contact" required></div>
+                <div class="form-group"><label for="signup-password">Password</label><input type="password" id="signup-password" required></div>
+                <button type="submit" class="btn-primary" style="width:100%;">Create Account</button>
+                <div class="alert alert-danger" id="signup-error"></div>
+                <p class="form-switch">Already have an account? <a id="show-login">Login</a></p>
             </form>
         </div>
     </div>
-
-    <div id="admin-dashboard">
-        <div class="header">
-            <h1>Admin Dashboard</h1>
-            <button id="logout-btn" class="btn btn-danger">Logout</button>
-        </div>
-        <div class="container">
-            <div id="alert-container"></div>
-            <div class="tabs">
-                <button class="tab-button active" onclick="openTab('tournaments')">Tournaments</button>
-                <button class="tab-button" onclick="openTab('registrations')">Registrations</button>
-                <button class="tab-button" onclick="openTab('results')">Results</button>
-                <button class="tab-button" onclick="openTab('sliders')">Announcements</button>
-                <button class="tab-button" onclick="openTab('wallet')">Wallet Verification</button>
+    
+    <!-- Profile & Wallet Modal -->
+    <div id="wallet-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="wallet-close-btn">&times;</span>
+            <h2>My Profile & Wallet</h2>
+            <div class="wallet-info">
+                <p>Current Balance</p>
+                <div class="wallet-balance" id="wallet-balance">₹0.00</div>
             </div>
-
-            <div id="loader"><div class="spinner"></div></div>
-
-            <!-- Tournaments Tab -->
-            <div id="tournaments" class="tab-content active">
-                <div class="card">
-                    <h3 id="tournament-form-title">Create New Tournament</h3>
-                    <form id="tournament-form">
-                        <input type="hidden" id="tournament-id">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="game">Game</label>
-                                <select id="game" required>
-                                    <option value="BGMI">BGMI</option>
-                                    <option value="Free Fire">Free Fire</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="title">Title</label>
-                                <input type="text" id="title" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="mode">Mode</label>
-                                <select id="mode" required>
-                                    <option value="Solo">Solo</option>
-                                    <option value="Duo">Duo</option>
-                                    <option value="Squad">Squad</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="perspective">Perspective</label>
-                                <select id="perspective" required>
-                                    <option value="TPP">TPP</option>
-                                    <option value="FPP">FPP</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="map">Map</label>
-                                <input type="text" id="map" placeholder="e.g., Erangel, Bermuda" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="date-time">Date & Time</label>
-                                <input type="datetime-local" id="date-time" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="entry-fee">Entry Fee (₹)</label>
-                                <input type="number" id="entry-fee" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="prize-pool">Prize Pool (₹)</label>
-                                <input type="number" id="prize-pool" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="max-players">Max Teams/Players</label>
-                                <input type="number" id="max-players" min="1" required>
-                            </div>
-                             <div class="form-group">
-                                <label for="room-reveal-time">Room Reveal Time</label>
-                                <input type="datetime-local" id="room-reveal-time" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="status">Status</label>
-                                <select id="status" required>
-                                    <option value="draft">Draft</option>
-                                    <option value="upcoming">Upcoming</option>
-                                    <option value="ongoing">Ongoing</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                             <div class="form-group">
-                                <label for="thumbnail-url">Thumbnail URL</label>
-                                <input type="url" id="thumbnail-url" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="rules">Rules</label>
-                            <textarea id="rules" rows="4"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="payment-link">External Payment Link (optional)</label>
-                            <input type="url" id="payment-link">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Tournament</button>
-                        <button type="button" id="cancel-edit-btn" class="btn btn-warning" style="display:none;">Cancel Edit</button>
-                    </form>
+             <form id="add-money-form">
+                <div class="form-group">
+                    <label for="amount">Amount to Add (₹)</label>
+                    <input type="number" id="amount" min="1" required placeholder="e.g., 100">
                 </div>
-                <div class="card">
-                    <h3>Existing Tournaments</h3>
-                    <div style="overflow-x:auto;">
-                        <table id="tournaments-table">
-                            <thead>
-                                <tr>
-                                    <th>Title</th>
-                                    <th>Game</th>
-                                    <th>Date & Time</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Registrations Tab -->
-            <div id="registrations" class="tab-content">
-                 <div class="card">
-                    <h3>View Registrations</h3>
-                    <div class="form-group">
-                        <label for="reg-tournament-select">Select a Tournament</label>
-                        <select id="reg-tournament-select"></select>
-                    </div>
-                    <div id="reg-counts">Total: 0 | Approved: 0 | Pending: 0</div>
-                     <div style="overflow-x:auto;">
-                        <table id="registrations-table">
-                            <thead>
-                                <tr>
-                                    <th>Player/Team</th>
-                                    <th>Leader Name</th>
-                                    <th>Contact</th>
-                                    <th>Player IDs</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr><td colspan="6">Select a tournament to view registrations.</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                 <div class="card">
-                    <h3>Room Credentials</h3>
-                     <form id="room-credentials-form">
-                        <input type="hidden" id="room-tournament-id">
-                        <p>Credentials for: <b id="room-tournament-title">Select a tournament</b></p>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="room-id">Room ID</label>
-                                <input type="text" id="room-id">
-                            </div>
-                            <div class="form-group">
-                                <label for="room-pass">Room Password</label>
-                                <input type="text" id="room-pass">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Update Credentials</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Results Tab -->
-            <div id="results" class="tab-content">
-                <div class="card">
-                    <h3>Manage Results</h3>
-                     <div class="form-group">
-                        <label for="result-tournament-select">Select Tournament</label>
-                        <select id="result-tournament-select"></select>
-                    </div>
-                </div>
-                <div class="card" id="result-management-section" style="display:none;">
-                    <h3 id="result-form-title">Add Result Entry</h3>
-                    <form id="result-form">
-                        <input type="hidden" id="result-team-name-hidden">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="result-team-name">Team/Player Name</label>
-                                <input type="text" id="result-team-name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="placement-points">Placement Points</label>
-                                <input type="number" id="placement-points" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="kill-points">Kill Points</label>
-                                <input type="number" id="kill-points" min="0" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="proof-url">Proof URL (optional)</label>
-                                <input type="url" id="proof-url">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Result</button>
-                    </form>
-                    <hr style="margin: 20px 0;">
-                    <h3>Leaderboard</h3>
-                    <div style="overflow-x:auto;">
-                        <table id="leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Team/Player</th>
-                                    <th>Placement Pts</th>
-                                    <th>Kill Pts</th>
-                                    <th>Total Pts</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sliders Tab -->
-            <div id="sliders" class="tab-content">
-                 <div class="card">
-                    <h3>Manage Announcement Banners</h3>
-                    <form id="slider-form">
-                        <input type="hidden" id="slider-id">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="slider-image-url">Image URL</label>
-                                <input type="url" id="slider-image-url" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="slider-redirect-url">Redirect URL</label>
-                                <input type="url" id="slider-redirect-url" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save Banner</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <h3>Existing Banners</h3>
-                    <div style="overflow-x:auto;">
-                        <table id="sliders-table">
-                            <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Redirect URL</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-             <!-- Wallet Verification Tab -->
-            <div id="wallet" class="tab-content">
-                <div class="card">
-                    <h3>Pending Wallet Transactions</h3>
-                    <p>Approve transactions here to add funds to user wallets.</p>
-                     <div style="overflow-x:auto;">
-                        <table id="wallet-transactions-table">
-                            <thead>
-                                <tr>
-                                    <th>User Email</th>
-                                    <th>Amount (₹)</th>
-                                    <th>Transaction Ref</th>
-                                    <th>Screenshot</th>
-                                    <th>Timestamp</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+                <p style="font-size:0.8rem; text-align:center; margin-bottom:10px;">You will be redirected to PhonePe UPI.</p>
+                <button type="submit" class="btn-primary" style="width:100%;">Add Money</button>
+            </form>
+            <hr style="margin: 20px 0; border-color: var(--border-color);">
+            <h3>Transaction History</h3>
+            <ul id="wallet-history">
+                <li>No transactions yet.</li>
+            </ul>
         </div>
     </div>
     
-    <!-- Confirmation Modal -->
-    <div id="confirmation-modal" class="modal">
+    <!-- Registration Confirmation Modal -->
+    <div id="reg-confirm-modal" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">Confirm Action</h3>
-                <span class="close-button" id="modal-close-btn">&times;</span>
-            </div>
-            <p id="modal-text">Are you sure?</p>
-            <div class="actions" style="justify-content: flex-end; margin-top: 20px;">
-                <button id="modal-cancel-btn" class="btn btn-warning">Cancel</button>
-                <button id="modal-confirm-btn" class="btn btn-danger">Confirm</button>
-            </div>
+             <h2>Confirm Registration</h2>
+             <p>Register for <b id="confirm-tourney-title">Tournament</b>?</p>
+             <p>Entry Fee: <b id="confirm-entry-fee">₹0</b></p>
+             <p>This will be deducted from your wallet.</p>
+             <div style="display:flex; gap: 10px; margin-top: 20px;">
+                <button id="cancel-reg-btn" class="btn-primary" style="flex:1; background: var(--secondary);">Cancel</button>
+                <button id="confirm-reg-btn" class="btn-primary" style="flex:1;">Confirm & Pay</button>
+             </div>
+             <div class="alert" id="reg-message"></div>
         </div>
     </div>
 
+
     <script type="module">
-        // Firebase Config
+        // --- FIREBASE SETUP ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import {
-            getAuth,
-            signInWithEmailAndPassword,
-            onAuthStateChanged,
-            signOut
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import {
-            getDatabase,
-            ref,
-            set,
-            push,
-            onValue,
-            remove,
-            update,
-            get,
-            runTransaction
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, onValue, push, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyD8TSxu8tSupRs136PPCCP7C7lxbI5t8ro",
-            authDomain: "kill-karo-pro.firebaseapp.com",
-            databaseURL: "https://kill-karo-pro-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "kill-karo-pro",
-            storageBucket: "kill-karo-pro.storage.app",
-            messagingSenderId: "583311964637",
-            appId: "1:583311964637:web:67398aec579de31f929e34",
-            measurementId: "G-LJ82ZYN507"
+          apiKey: "AIzaSyD8TSxu8tSupRs136PPCCP7C7lxbI5t8ro",
+          authDomain: "kill-karo-pro.firebaseapp.com",
+          databaseURL: "https://kill-karo-pro-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "kill-karo-pro",
+          storageBucket: "kill-karo-pro.appspot.com",
+          messagingSenderId: "583311964637",
+          appId: "1:583311964637:web:67398aec579de31f929e34",
+          measurementId: "G-LJ82ZYN507"
         };
+
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- GLOBAL STATE & UTILS ---
-        const loader = document.getElementById('loader');
+        // --- GLOBAL STATE & CACHE ---
+        let currentUser = null;
+        let tournamentsCache = {};
+        
+        // --- THEME SWITCHER ---
+        const themeSwitcher = document.getElementById('theme-switcher');
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem('theme') || 'light';
 
-        function showLoader() { loader.style.display = 'block'; }
-        function hideLoader() { loader.style.display = 'none'; }
-
-        function showAlert(message, type = 'success') {
-            const container = document.getElementById('alert-container');
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type}`;
-            alertDiv.textContent = message;
-            container.appendChild(alertDiv);
-            alertDiv.style.display = 'block';
-            setTimeout(() => {
-                alertDiv.style.display = 'none';
-                container.removeChild(alertDiv);
-            }, 4000);
+        if (savedTheme === 'dark') {
+            html.classList.add('dark');
+            themeSwitcher.textContent = '🌙';
+        } else {
+            themeSwitcher.textContent = '☀️';
         }
 
-        function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
-        window.openTab = openTab;
-
-        // --- AUTHENTICATION ---
-        const loginSection = document.getElementById('admin-login');
-        const dashboardSection = document.getElementById('admin-dashboard');
-
-        onAuthStateChanged(auth, user => {
-            if (user) {
-                loginSection.style.display = 'none';
-                dashboardSection.style.display = 'block';
-                fetchAllData();
+        themeSwitcher.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                themeSwitcher.textContent = '☀️';
             } else {
-                loginSection.style.display = 'block';
-                dashboardSection.style.display = 'none';
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                themeSwitcher.textContent = '🌙';
             }
         });
 
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('admin-email').value;
-            const password = document.getElementById('admin-password').value;
-            const loginError = document.getElementById('login-error');
+        // --- UI & MODAL MANAGEMENT ---
+        const authModal = document.getElementById('auth-modal');
+        const walletModal = document.getElementById('wallet-modal');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
 
-            signInWithEmailAndPassword(auth, email, password)
+        const openModal = (modal) => modal.style.display = 'flex';
+        const closeModal = (modal) => modal.style.display = 'none';
+
+        document.getElementById('login-btn').addEventListener('click', () => {
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            openModal(authModal);
+        });
+        document.getElementById('signup-btn').addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            openModal(authModal);
+        });
+        document.getElementById('profile-btn').addEventListener('click', () => openModal(walletModal));
+        
+        document.getElementById('auth-close-btn').addEventListener('click', () => closeModal(authModal));
+        document.getElementById('wallet-close-btn').addEventListener('click', () => closeModal(walletModal));
+        
+        document.getElementById('show-signup').addEventListener('click', () => {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+        });
+        document.getElementById('show-login').addEventListener('click', () => {
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+        
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, user => {
+            const authButtons = document.getElementById('auth-buttons');
+            const userMenu = document.getElementById('user-menu');
+            if (user) {
+                currentUser = user;
+                authButtons.style.display = 'none';
+                userMenu.style.display = 'flex';
+                const userGreeting = document.getElementById('user-greeting');
+                // Fetch user profile to get display name
+                const userRef = ref(db, `users/${user.uid}`);
+                get(userRef).then(snapshot => {
+                    if(snapshot.exists()) {
+                        const userData = snapshot.val();
+                        userGreeting.textContent = `Hi, ${userData.displayName}`;
+                        updateWalletUI(userData.walletBalance);
+                        loadWalletHistory(user.uid);
+                    }
+                });
+            } else {
+                currentUser = null;
+                authButtons.style.display = 'flex';
+                userMenu.style.display = 'none';
+            }
+            // Re-render tournaments to show/hide register buttons
+            renderTournaments();
+        });
+
+        signupForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const displayName = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const contactNumber = document.getElementById('signup-contact').value;
+            const password = document.getElementById('signup-password').value;
+            const errorDiv = document.getElementById('signup-error');
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    // Create user profile in Realtime Database
+                    set(ref(db, 'users/' + user.uid), {
+                        displayName,
+                        email,
+                        contactNumber,
+                        walletBalance: 0,
+                        createdAt: new Date().toISOString()
+                    }).then(() => {
+                        closeModal(authModal);
+                    });
+                })
                 .catch(error => {
-                    loginError.textContent = error.message;
-                    loginError.style.display = 'block';
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
                 });
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth);
-        });
-        
-        function fetchAllData() {
-            loadTournaments();
-            loadSliders();
-            loadWalletTransactions();
-        }
-
-        // --- TOURNAMENT MANAGEMENT ---
-        const tournamentForm = document.getElementById('tournament-form');
-        const tournamentTableBody = document.querySelector('#tournaments-table tbody');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
-
-        tournamentForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const tournamentId = document.getElementById('tournament-id').value;
-            const tournamentData = {
-                game: document.getElementById('game').value,
-                title: document.getElementById('title').value,
-                mode: document.getElementById('mode').value,
-                perspective: document.getElementById('perspective').value,
-                map: document.getElementById('map').value,
-                dateTime: new Date(document.getElementById('date-time').value).toISOString(),
-                entryFee: parseInt(document.getElementById('entry-fee').value),
-                prizePool: parseInt(document.getElementById('prize-pool').value),
-                maxPlayers: parseInt(document.getElementById('max-players').value),
-                rules: document.getElementById('rules').value,
-                roomRevealAt: new Date(document.getElementById('room-reveal-time').value).toISOString(),
-                status: document.getElementById('status').value,
-                thumbnailUrl: document.getElementById('thumbnail-url').value,
-                paymentLink: document.getElementById('payment-link').value,
-                createdAt: new Date().toISOString()
-            };
-
-            if (tournamentId) { // Update
-                update(ref(db, `tournaments/${tournamentId}`), tournamentData)
-                    .then(() => showAlert('Tournament updated successfully!'))
-                    .catch(e => showAlert('Error: ' + e.message, 'danger'));
-            } else { // Create
-                const newTournamentRef = push(ref(db, 'tournaments'));
-                set(newTournamentRef, tournamentData)
-                    .then(() => showAlert('Tournament created successfully!'))
-                    .catch(e => showAlert('Error: ' + e.message, 'danger'));
-            }
-            resetTournamentForm();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => closeModal(authModal))
+                .catch(error => {
+                    errorDiv.textContent = error.message;
+                    errorDiv.style.display = 'block';
+                });
         });
 
-        function resetTournamentForm() {
-            tournamentForm.reset();
-            document.getElementById('tournament-id').value = '';
-            document.getElementById('tournament-form-title').textContent = 'Create New Tournament';
-            cancelEditBtn.style.display = 'none';
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+        // --- SLIDER ---
+        const slider = document.getElementById('slider');
+        let currentSlide = 0;
+        function loadSlider() {
+            const sliderRef = ref(db, 'slider');
+            onValue(sliderRef, (snapshot) => {
+                slider.innerHTML = '';
+                const slides = snapshot.val() ? Object.values(snapshot.val()) : [];
+                if (slides.length > 0) {
+                    slides.forEach(slideData => {
+                        slider.innerHTML += `
+                            <div class="slide">
+                                <a href="${slideData.redirectUrl}" target="_blank">
+                                    <img src="${slideData.imageUrl}" alt="Announcement">
+                                </a>
+                            </div>
+                        `;
+                    });
+                    
+                    // Auto-slide logic
+                    setInterval(() => {
+                        currentSlide = (currentSlide + 1) % slides.length;
+                        slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+                    }, 4000);
+                }
+            });
         }
-
-        cancelEditBtn.addEventListener('click', resetTournamentForm);
-
+        
+        // --- TOURNAMENTS ---
+        const tournamentsGrid = document.getElementById('tournaments-grid');
         function loadTournaments() {
-            showLoader();
             const tournamentsRef = ref(db, 'tournaments');
             onValue(tournamentsRef, (snapshot) => {
-                const data = snapshot.val();
-                tournamentTableBody.innerHTML = '';
-                
-                const regSelect = document.getElementById('reg-tournament-select');
-                const resultSelect = document.getElementById('result-tournament-select');
-                regSelect.innerHTML = '<option value="">-- Select Tournament --</option>';
-                resultSelect.innerHTML = '<option value="">-- Select Tournament --</option>';
+                tournamentsCache = snapshot.val() || {};
+                renderTournaments();
+            });
+        }
 
-                if (data) {
-                    Object.entries(data).forEach(([key, value]) => {
-                        const row = `
-                            <tr>
-                                <td>${value.title}</td>
-                                <td>${value.game}</td>
-                                <td>${new Date(value.dateTime).toLocaleString()}</td>
-                                <td>${value.status}</td>
-                                <td class="actions">
-                                    <button class="btn btn-sm btn-warning" onclick="editTournament('${key}')">Edit</button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteTournament('${key}')">Delete</button>
-                                </td>
-                            </tr>
+        function renderTournaments() {
+            tournamentsGrid.innerHTML = '';
+            const upcomingTournaments = Object.entries(tournamentsCache).filter(([id, t]) => t.status === 'upcoming');
+            
+            if (upcomingTournaments.length === 0) {
+                 document.getElementById('no-tournaments-msg').style.display = 'block';
+            } else {
+                 document.getElementById('no-tournaments-msg').style.display = 'none';
+            }
+
+            upcomingTournaments.forEach(([id, t]) => {
+                const spotsLeft = t.maxPlayers - (t.registrations ? Object.keys(t.registrations).length : 0);
+                const card = `
+                    <div class="tournament-card">
+                        <img src="${t.thumbnailUrl}" alt="${t.title}" class="card-thumbnail">
+                        <div class="card-body">
+                            <div class="card-header">
+                                <span class="game-badge ${t.game.toLowerCase().replace(' ', '')}">${t.game}</span>
+                                <h3 class="card-title">${t.title}</h3>
+                            </div>
+                            <div class="card-meta">
+                                <span>${t.mode}</span> | <span>${t.perspective}</span> | <span>${t.map}</span>
+                            </div>
+                            <div class="card-details">
+                                <div class="detail-item">Prize: <strong>₹${t.prizePool}</strong></div>
+                                <div class="detail-item">Entry: <strong>₹${t.entryFee}</strong></div>
+                                <div class="detail-item">Date: <strong>${new Date(t.dateTime).toLocaleDateString()}</strong></div>
+                                <div class="detail-item">Time: <strong>${new Date(t.dateTime).toLocaleTimeString()}</strong></div>
+                            </div>
+                            <div class="card-footer">
+                                <span>Spots Left: <strong>${spotsLeft > 0 ? spotsLeft : 'Full'}</strong></span>
+                                ${currentUser && spotsLeft > 0 ? `<button class="btn-primary" onclick="handleRegistration('${id}')">Register</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                tournamentsGrid.innerHTML += card;
+            });
+            renderTournamentDetailView();
+        }
+
+        // --- REGISTRATION ---
+        const regConfirmModal = document.getElementById('reg-confirm-modal');
+        const confirmTitle = document.getElementById('confirm-tourney-title');
+        const confirmFee = document.getElementById('confirm-entry-fee');
+        let currentTournamentIdForReg = null;
+
+        window.handleRegistration = async (tournamentId) => {
+            if (!currentUser) {
+                alert('Please login to register.');
+                return;
+            }
+            // Check if already registered
+            const regCheckRef = ref(db, `registrations/${tournamentId}/${currentUser.uid}`);
+            const regSnapshot = await get(regCheckRef);
+            if(regSnapshot.exists()){
+                alert("You have already registered for this tournament.");
+                return;
+            }
+
+            currentTournamentIdForReg = tournamentId;
+            const tournament = tournamentsCache[tournamentId];
+            confirmTitle.textContent = tournament.title;
+            confirmFee.textContent = `₹${tournament.entryFee}`;
+            openModal(regConfirmModal);
+        };
+        
+        document.getElementById('cancel-reg-btn').addEventListener('click', () => closeModal(regConfirmModal));
+        
+        document.getElementById('confirm-reg-btn').addEventListener('click', async () => {
+            const tournament = tournamentsCache[currentTournamentIdForReg];
+            const userRef = ref(db, `users/${currentUser.uid}`);
+            const userSnapshot = await get(userRef);
+            const userData = userSnapshot.val();
+
+            if (userData.walletBalance >= tournament.entryFee) {
+                // Atomic wallet deduction
+                const walletRef = ref(db, `users/${currentUser.uid}/walletBalance`);
+                await runTransaction(walletRef, (currentBalance) => {
+                    if (currentBalance < tournament.entryFee) {
+                        return; // Abort transaction
+                    }
+                    return currentBalance - tournament.entryFee;
+                });
+
+                // Create registration entry
+                const regRef = ref(db, `registrations/${currentTournamentIdForReg}/${currentUser.uid}`);
+                await set(regRef, {
+                    leaderName: userData.displayName,
+                    contactNumber: userData.contactNumber,
+                    playerIDs: [userData.displayName], // Example for Solo
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                });
+                
+                // Log transaction
+                const txnRef = push(ref(db, `walletTransactions/${currentUser.uid}`));
+                await set(txnRef, {
+                    type: 'debit',
+                    amount: tournament.entryFee,
+                    description: `Entry fee for ${tournament.title}`,
+                    timestamp: new Date().toISOString()
+                });
+
+                document.getElementById('reg-message').className = 'alert alert-success';
+                document.getElementById('reg-message').textContent = 'Registration successful! Your status is pending approval.';
+                document.getElementById('reg-message').style.display = 'block';
+
+                setTimeout(() => {
+                    closeModal(regConfirmModal);
+                    document.getElementById('reg-message').style.display = 'none';
+                }, 3000);
+
+            } else {
+                document.getElementById('reg-message').className = 'alert alert-danger';
+                document.getElementById('reg-message').textContent = 'Insufficient Balance! Please add money to your wallet.';
+                document.getElementById('reg-message').style.display = 'block';
+            }
+        });
+
+
+        // --- WALLET SYSTEM ---
+        function updateWalletUI(balance) {
+            document.getElementById('wallet-balance').textContent = `₹${(balance || 0).toFixed(2)}`;
+        }
+        
+        document.getElementById('add-money-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('amount').value;
+            if(amount < 1) return;
+            // Simulate PhonePe UPI deep link
+            const upiLink = `upi://pay?pa=your-upi-id@ybl&pn=BattleArena&am=${amount}&cu=INR`;
+            // For a real app, you would use a web SDK or redirect. Here we simulate the process.
+            alert(`Opening PhonePe to pay ₹${amount}. After payment, please upload transaction details.`);
+            
+            // In a real scenario, after payment, the user would provide a transaction ID.
+            // We will create a "pending" transaction for the admin to approve.
+            const transactionId = prompt("Please enter your UPI Transaction ID for verification:");
+            if (transactionId && currentUser) {
+                const pendingTxnRef = push(ref(db, 'pendingWalletTransactions'));
+                set(pendingTxnRef, {
+                    uid: currentUser.uid,
+                    amount: parseFloat(amount),
+                    transactionId: transactionId,
+                    timestamp: new Date().toISOString(),
+                    // screenshotUrl would be handled by Firebase Storage in a full app
+                }).then(() => {
+                    alert('Your request has been submitted and is pending verification.');
+                    closeModal(walletModal);
+                });
+            }
+        });
+
+        function loadWalletHistory(uid) {
+            const historyRef = ref(db, `walletTransactions/${uid}`);
+            onValue(historyRef, (snapshot) => {
+                const historyList = document.getElementById('wallet-history');
+                historyList.innerHTML = '';
+                const txns = snapshot.val();
+                if(txns) {
+                    Object.values(txns).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).forEach(txn => {
+                        const li = document.createElement('li');
+                        const sign = txn.type === 'credit' || txn.type === 'refund' ? '+' : '-';
+                        li.className = `transaction-${txn.type}`;
+                        li.innerHTML = `
+                            <span>${txn.description}</span>
+                            <strong>${sign}₹${txn.amount}</strong>
                         `;
-                        tournamentTableBody.innerHTML += row;
-                        
-                        regSelect.innerHTML += `<option value="${key}">${value.title}</option>`;
-                        if (value.status === 'completed' || value.status === 'ongoing') {
-                            resultSelect.innerHTML += `<option value="${key}">${value.title}</option>`;
-                        }
+                        historyList.appendChild(li);
                     });
                 } else {
-                    tournamentTableBody.innerHTML = '<tr><td colspan="5">No tournaments found.</td></tr>';
+                    historyList.innerHTML = '<li>No transactions yet.</li>';
                 }
-                window.tournamentsData = data;
-                hideLoader();
             });
         }
+        
+        // --- TOURNAMENT DETAIL, ROOM & RESULTS ---
+        const detailView = document.getElementById('tournament-detail-view');
 
-        window.editTournament = (id) => {
-            const tournament = window.tournamentsData[id];
+        function navigateToDetail(tournamentId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            detailView.classList.add('active');
+            renderTournamentDetailView(tournamentId);
+        }
+        
+        // Add event listener to grid that delegates clicks
+        tournamentsGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.tournament-card');
+            if (card && !e.target.matches('button')) {
+                // Find the id from the button's onclick attribute (a bit of a hack)
+                const button = card.querySelector('button[onclick]');
+                if(button) {
+                    const onclickAttr = button.getAttribute('onclick');
+                    const tournamentId = onclickAttr.match(/'([^']+)'/)[1];
+                    navigateToDetail(tournamentId);
+                }
+            }
+        });
+
+        async function renderTournamentDetailView(tournamentId) {
+            if (!tournamentId) {
+                 detailView.innerHTML = '';
+                 return;
+            }
+            const tournament = tournamentsCache[tournamentId];
             if (!tournament) return;
-            document.getElementById('tournament-id').value = id;
-            document.getElementById('game').value = tournament.game;
-            document.getElementById('title').value = tournament.title;
-            document.getElementById('mode').value = tournament.mode;
-            document.getElementById('perspective').value = tournament.perspective;
-            document.getElementById('map').value = tournament.map;
-            document.getElementById('date-time').value = tournament.dateTime.slice(0, 16);
-            document.getElementById('entry-fee').value = tournament.entryFee;
-            document.getElementById('prize-pool').value = tournament.prizePool;
-            document.getElementById('max-players').value = tournament.maxPlayers;
-            document.getElementById('rules').value = tournament.rules;
-            document.getElementById('room-reveal-time').value = tournament.roomRevealAt.slice(0, 16);
-            document.getElementById('status').value = tournament.status;
-            document.getElementById('thumbnail-url').value = tournament.thumbnailUrl;
-            document.getElementById('payment-link').value = tournament.paymentLink;
             
-            document.getElementById('tournament-form-title').textContent = 'Edit Tournament';
-            cancelEditBtn.style.display = 'inline-block';
-            window.scrollTo(0, 0);
-        };
-        
-        window.deleteTournament = (id) => {
-             showConfirmationModal(
-                'Delete Tournament',
-                'Are you sure you want to delete this tournament and all its associated data (registrations, results)? This cannot be undone.',
-                () => {
-                    remove(ref(db, `tournaments/${id}`));
-                    remove(ref(db, `registrations/${id}`));
-                    remove(ref(db, `results/${id}`));
-                    showAlert('Tournament deleted successfully.');
-                }
-            );
-        };
-        
-        // --- REGISTRATION & ROOM MANAGEMENT ---
-        const regSelect = document.getElementById('reg-tournament-select');
-        const regTableBody = document.querySelector('#registrations-table tbody');
-        const regCountsEl = document.getElementById('reg-counts');
+            let roomInfoHtml = '<p>Room credentials will be revealed here after the reveal time.</p>';
+            let registrationStatus = 'Not Registered';
 
-        regSelect.addEventListener('change', () => {
-            const tournamentId = regSelect.value;
-            if (!tournamentId) {
-                regTableBody.innerHTML = '<tr><td colspan="6">Select a tournament to view registrations.</td></tr>';
-                document.getElementById('room-tournament-id').value = '';
-                document.getElementById('room-tournament-title').textContent = 'Select a tournament';
-                document.getElementById('room-credentials-form').reset();
-                return;
-            }
-            
-            const selectedTournament = window.tournamentsData[tournamentId];
-            document.getElementById('room-tournament-id').value = tournamentId;
-            document.getElementById('room-tournament-title').textContent = selectedTournament.title;
-            document.getElementById('room-id').value = selectedTournament.roomId || '';
-            document.getElementById('room-pass').value = selectedTournament.roomPass || '';
-            
-            loadRegistrations(tournamentId);
-        });
-
-        function loadRegistrations(tournamentId) {
-            const registrationsRef = ref(db, `registrations/${tournamentId}`);
-            onValue(registrationsRef, async (snapshot) => {
-                const registrations = snapshot.val();
-                regTableBody.innerHTML = '';
-                let total = 0, approved = 0, pending = 0;
-
-                if (registrations) {
-                    for (const [uid, reg] of Object.entries(registrations)) {
-                        total++;
-                        if(reg.status === 'approved') approved++;
-                        if(reg.status === 'pending') pending++;
-
-                        const userSnapshot = await get(ref(db, `users/${uid}`));
-                        const userEmail = userSnapshot.val()?.email || 'N/A';
-
-                        const row = `
-                            <tr>
-                                <td>${reg.teamName || reg.playerName}</td>
-                                <td>${reg.leaderName}</td>
-                                <td>${reg.contactNumber}</td>
-                                <td>${reg.playerIDs.join(', ')}</td>
-                                <td>${reg.status}</td>
-                                <td class="actions">
-                                    ${reg.status === 'pending' ? `
-                                        <button class="btn btn-sm btn-success" onclick="updateRegistrationStatus('${tournamentId}', '${uid}', 'approved')">Approve</button>
-                                        <button class="btn btn-sm btn-danger" onclick="updateRegistrationStatus('${tournamentId}', '${uid}', 'rejected')">Reject</button>
-                                    ` : `<span>-</span>` }
-                                </td>
-                            </tr>
+            if(currentUser){
+                const regRef = ref(db, `registrations/${tournamentId}/${currentUser.uid}`);
+                const regSnapshot = await get(regRef);
+                if(regSnapshot.exists()){
+                    registrationStatus = `Registered (Status: ${regSnapshot.val().status})`;
+                    if (regSnapshot.val().status === 'approved' && new Date() > new Date(tournament.roomRevealAt)) {
+                        roomInfoHtml = `
+                            <div class="credentials-box">
+                                <h3>Room Credentials</h3>
+                                <div class="cred-item">ID: <span>${tournament.roomId || 'Not set'}</span> <span class="copy-btn" onclick="copyToClipboard('${tournament.roomId}')">📋</span></div>
+                                <div class="cred-item">Pass: <span>${tournament.roomPass || 'Not set'}</span> <span class="copy-btn" onclick="copyToClipboard('${tournament.roomPass}')">📋</span></div>
+                            </div>
                         `;
-                        regTableBody.innerHTML += row;
                     }
-                } else {
-                    regTableBody.innerHTML = '<tr><td colspan="6">No registrations found for this tournament.</td></tr>';
                 }
-                regCountsEl.textContent = `Total: ${total} | Approved: ${approved} | Pending: ${pending}`;
-            });
-        }
-        
-        window.updateRegistrationStatus = (tournamentId, uid, newStatus) => {
-            const regRef = ref(db, `registrations/${tournamentId}/${uid}/status`);
-            let confirmationText = `Are you sure you want to ${newStatus} this registration?`;
-            
-            // If rejecting, we must refund the user
-            if (newStatus === 'rejected') {
-                confirmationText += " The entry fee will be refunded to the user's wallet.";
             }
 
-            showConfirmationModal(
-                'Confirm Action',
-                confirmationText,
-                () => {
-                    if (newStatus === 'rejected') {
-                        const tournamentData = window.tournamentsData[tournamentId];
-                        const userWalletRef = ref(db, `users/${uid}/walletBalance`);
-                        runTransaction(userWalletRef, (currentBalance) => {
-                            return (currentBalance || 0) + tournamentData.entryFee;
-                        }).then(() => {
-                           set(ref(db, `walletTransactions/${uid}/${Date.now()}`), {
-                                type: 'refund',
-                                amount: tournamentData.entryFee,
-                                description: `Refund for rejected registration in ${tournamentData.title}`,
-                                timestamp: new Date().toISOString()
-                            });
-                        });
-                    }
-                    set(regRef, newStatus).then(() => showAlert(`Registration ${newStatus} successfully.`));
-                }
-            );
-        };
-        
-        document.getElementById('room-credentials-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const tournamentId = document.getElementById('room-tournament-id').value;
-            if(!tournamentId) {
-                showAlert('Please select a tournament first.', 'danger');
-                return;
-            }
-            const roomId = document.getElementById('room-id').value;
-            const roomPass = document.getElementById('room-pass').value;
-            update(ref(db, `tournaments/${tournamentId}`), { roomId, roomPass })
-                .then(() => showAlert('Room credentials updated successfully!'));
-        });
-
-
-        // --- RESULTS & LEADERBOARD MANAGEMENT ---
-        const resultSelect = document.getElementById('result-tournament-select');
-        const resultSection = document.getElementById('result-management-section');
-        const leaderboardTableBody = document.querySelector('#leaderboard-table tbody');
-        const resultForm = document.getElementById('result-form');
-
-        resultSelect.addEventListener('change', () => {
-            const tournamentId = resultSelect.value;
-            if (!tournamentId) {
-                resultSection.style.display = 'none';
-                return;
-            }
-            resultSection.style.display = 'block';
-            loadLeaderboard(tournamentId);
-        });
-        
-        resultForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const tournamentId = resultSelect.value;
-            const teamName = document.getElementById('result-team-name').value;
-            const teamNameKey = teamName.replace(/[^a-zA-Z0-9]/g, '_'); // Sanitize for Firebase key
-            const resultData = {
-                teamName: teamName,
-                placementPoints: parseInt(document.getElementById('placement-points').value),
-                killPoints: parseInt(document.getElementById('kill-points').value),
-            };
-            
-            set(ref(db, `results/${tournamentId}/${teamNameKey}`), resultData)
-                .then(() => {
-                    showAlert('Result saved successfully!');
-                    resultForm.reset();
-                })
-                .catch(e => showAlert(e.message, 'danger'));
-        });
-
-        function loadLeaderboard(tournamentId) {
-            const resultsRef = ref(db, `results/${tournamentId}`);
-            onValue(resultsRef, (snapshot) => {
-                const results = snapshot.val();
-                leaderboardTableBody.innerHTML = '';
-                if(results){
-                    const leaderboard = Object.values(results).map(r => ({
+            let resultsHtml = '';
+            if (tournament.status === 'completed') {
+                const resultsRef = ref(db, `results/${tournamentId}`);
+                const resultsSnapshot = await get(resultsRef);
+                if (resultsSnapshot.exists()) {
+                     const results = Object.values(resultsSnapshot.val()).map(r => ({
                         ...r,
                         totalPoints: r.placementPoints + r.killPoints
-                    })).sort((a, b) => {
-                        if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
-                        if (b.placementPoints !== a.placementPoints) return b.placementPoints - a.placementPoints;
-                        return b.killPoints - a.killPoints;
-                    });
-                    
-                    leaderboard.forEach((entry, index) => {
-                        const teamNameKey = entry.teamName.replace(/[^a-zA-Z0-9]/g, '_');
-                        const row = `
-                            <tr>
-                                <td>${index + 1}</td>
-                                <td>${entry.teamName}</td>
-                                <td>${entry.placementPoints}</td>
-                                <td>${entry.killPoints}</td>
-                                <td><b>${entry.totalPoints}</b></td>
-                                <td class="actions">
-                                    <button class="btn btn-sm btn-danger" onclick="deleteResult('${tournamentId}', '${teamNameKey}')">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                        leaderboardTableBody.innerHTML += row;
-                    });
-                } else {
-                    leaderboardTableBody.innerHTML = '<tr><td colspan="6">No results posted yet.</td></tr>';
+                    })).sort((a, b) => b.totalPoints - a.totalPoints);
+                    resultsHtml = `
+                    <div class="content-card">
+                        <h3>Leaderboard</h3>
+                         <div style="overflow-x: auto;"><table><thead><tr><th>Rank</th><th>Player/Team</th><th>Kills</th><th>Placement</th><th>Total</th></tr></thead><tbody>
+                         ${results.map((r, i) => `<tr><td>${i+1}</td><td>${r.teamName}</td><td>${r.killPoints}</td><td>${r.placementPoints}</td><td><b>${r.totalPoints}</b></td></tr>`).join('')}
+                         </tbody></table></div>
+                    </div>
+                    `;
                 }
-            });
+            }
+
+            detailView.innerHTML = `
+                <button onclick="showHomeView()">← Back to Tournaments</button>
+                <div class="content-card" style="margin-top:20px;">
+                    <img src="${tournament.thumbnailUrl}" style="width:100%; border-radius:8px; margin-bottom: 20px;">
+                    <h2>${tournament.title}</h2>
+                    <p><strong>Status:</strong> ${tournament.status}</p>
+                    <p><strong>Your Status:</strong> ${registrationStatus}</p>
+                    <hr style="margin: 15px 0;">
+                    <p>${tournament.rules || 'No specific rules provided.'}</p>
+                    ${roomInfoHtml}
+                </div>
+                ${resultsHtml}
+            `;
         }
-        
-        window.deleteResult = (tournamentId, teamNameKey) => {
-            showConfirmationModal('Delete Result', 'Are you sure you want to delete this result entry?', () => {
-                remove(ref(db, `results/${tournamentId}/${teamNameKey}`)).then(() => showAlert('Result deleted.'));
+
+        window.showHomeView = () => {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById('home-view').classList.add('active');
+        };
+
+        window.copyToClipboard = (text) => {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
             });
         };
         
-        // --- SLIDERS MANAGEMENT ---
-        const sliderForm = document.getElementById('slider-form');
-        const slidersTableBody = document.querySelector('#sliders-table tbody');
-
-        sliderForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const sliderId = document.getElementById('slider-id').value;
-            const sliderData = {
-                imageUrl: document.getElementById('slider-image-url').value,
-                redirectUrl: document.getElementById('slider-redirect-url').value,
-            };
-
-            if (sliderId) {
-                update(ref(db, `slider/${sliderId}`), sliderData).then(() => showAlert('Banner updated!'));
-            } else {
-                push(ref(db, 'slider'), sliderData).then(() => showAlert('Banner added!'));
-            }
-            sliderForm.reset();
-            document.getElementById('slider-id').value = '';
-        });
-
-        function loadSliders() {
-            const slidersRef = ref(db, 'slider');
-            onValue(slidersRef, (snapshot) => {
-                const data = snapshot.val();
-                slidersTableBody.innerHTML = '';
-                if (data) {
-                    Object.entries(data).forEach(([key, value]) => {
-                        const row = `
-                            <tr>
-                                <td><img src="${value.imageUrl}" alt="Banner" width="100"></td>
-                                <td>${value.redirectUrl}</td>
-                                <td class="actions">
-                                    <button class="btn btn-sm btn-danger" onclick="deleteSlider('${key}')">Delete</button>
-                                </td>
-                            </tr>
-                        `;
-                        slidersTableBody.innerHTML += row;
-                    });
-                } else {
-                    slidersTableBody.innerHTML = '<tr><td colspan="3">No banners found.</td></tr>';
-                }
-            });
+        // --- INITIAL LOAD ---
+        function init() {
+            loadSlider();
+            loadTournaments();
         }
 
-        window.deleteSlider = (id) => {
-             showConfirmationModal('Delete Banner', 'Are you sure you want to delete this banner?', () => {
-                remove(ref(db, `slider/${id}`)).then(() => showAlert('Banner deleted.'));
-            });
-        };
-
-        // --- WALLET VERIFICATION ---
-        const walletTableBody = document.querySelector('#wallet-transactions-table tbody');
-
-        function loadWalletTransactions() {
-            const pendingTxnsRef = ref(db, 'pendingWalletTransactions');
-            onValue(pendingTxnsRef, async (snapshot) => {
-                const data = snapshot.val();
-                walletTableBody.innerHTML = '';
-                if(data) {
-                    for(const [txnId, txn] of Object.entries(data)) {
-                        const userSnapshot = await get(ref(db, `users/${txn.uid}`));
-                        const userEmail = userSnapshot.val()?.email || 'N/A';
-                        const row = `
-                            <tr>
-                                <td>${userEmail}</td>
-                                <td>₹${txn.amount}</td>
-                                <td>${txn.transactionId || 'N/A'}</td>
-                                <td>${txn.screenshotUrl ? `<a href="${txn.screenshotUrl}" target="_blank">View</a>` : 'N/A'}</td>
-                                <td>${new Date(txn.timestamp).toLocaleString()}</td>
-                                <td class="actions">
-                                    <button class="btn btn-sm btn-success" onclick="approveTransaction('${txnId}')">Approve</button>
-                                </td>
-                            </tr>
-                        `;
-                        walletTableBody.innerHTML += row;
-                    }
-                } else {
-                    walletTableBody.innerHTML = '<tr><td colspan="6">No pending transactions.</td></tr>';
-                }
-            });
-        }
-
-        window.approveTransaction = (txnId) => {
-            const txnRef = ref(db, `pendingWalletTransactions/${txnId}`);
-            get(txnRef).then((snapshot) => {
-                if(!snapshot.exists()) {
-                    showAlert('Transaction not found or already processed.', 'danger');
-                    return;
-                }
-                const txnData = snapshot.val();
-                const userWalletRef = ref(db, `users/${txnData.uid}/walletBalance`);
-
-                // Use transaction to safely update wallet balance
-                runTransaction(userWalletRef, (currentBalance) => {
-                    return (currentBalance || 0) + txnData.amount;
-                }).then(() => {
-                    // Log the transaction for user history
-                    const historyTxnRef = ref(db, `walletTransactions/${txnData.uid}/${txnId}`);
-                    set(historyTxnRef, {
-                        type: 'credit',
-                        amount: txnData.amount,
-                        description: 'Amount added to wallet',
-                        timestamp: new Date().toISOString()
-                    });
-                    
-                    // Remove from pending list
-                    remove(txnRef);
-
-                    showAlert('Transaction approved and wallet updated!');
-                }).catch((error) => {
-                    showAlert('Failed to update wallet: ' + error.message, 'danger');
-                });
-            });
-        };
-        
-        // --- MODAL LOGIC ---
-        const modal = document.getElementById('confirmation-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalText = document.getElementById('modal-text');
-        const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-        const modalCancelBtn = document.getElementById('modal-cancel-btn');
-        const modalCloseBtn = document.getElementById('modal-close-btn');
-        let confirmCallback = null;
-
-        function showConfirmationModal(title, text, onConfirm) {
-            modalTitle.textContent = title;
-            modalText.textContent = text;
-            confirmCallback = onConfirm;
-            modal.style.display = 'block';
-        }
-
-        function hideModal() {
-            modal.style.display = 'none';
-            confirmCallback = null;
-        }
-
-        modalConfirmBtn.addEventListener('click', () => {
-            if (confirmCallback) {
-                confirmCallback();
-            }
-            hideModal();
-        });
-        modalCancelBtn.addEventListener('click', hideModal);
-        modalCloseBtn.addEventListener('click', hideModal);
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                hideModal();
-            }
-        }
-
+        init();
     </script>
+
 </body>
 </html>
